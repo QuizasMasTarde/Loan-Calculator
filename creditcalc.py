@@ -61,44 +61,48 @@ def diff_payment_calc(p, n, i):
     over_payment = total - p
     print(f'\nOverpayment = {over_payment}')
 
+def main():
+    parser = argparse.ArgumentParser()
 
-parser = argparse.ArgumentParser()
+    parser.add_argument("--type", choices=["annuity", "diff"], required=True)
+    parser.add_argument("--principal", type=int)
+    parser.add_argument("--periods", type=int)
+    parser.add_argument("--interest", type=float)
+    parser.add_argument("--payment", type=int)
 
-parser.add_argument("--type", choices=["annuity", "diff"], required=True)
-parser.add_argument("--principal", type=int)
-parser.add_argument("--periods", type=int)
-parser.add_argument("--interest", type=float)
-parser.add_argument("--payment", type=int)
+    args = parser.parse_args()
 
-args = parser.parse_args()
+    values = [args.principal, args.periods, args.interest, args.payment]
 
-values = [args.principal, args.periods, args.interest, args.payment]
+    positive_check(values)
 
-positive_check(values)
+    if values.count(None) > 1 or args.interest is None or args.type == "diff" and args.payment:
+        print("Incorrect parameters")
 
-if values.count(None) > 1 or args.interest is None or args.type == "diff" and args.payment:
-    print("Incorrect parameters")
+    else:
+        if args.type == "diff":
+            diff_payment_calc(args.principal, args.periods, args.interest)
 
-else:
-    if args.type == "diff":
-        diff_payment_calc(args.principal, args.periods, args.interest)
+        elif args.type == "annuity" and not args.periods:
+            number_payments = number_payments_calc(args.principal, args.payment, args.interest)
+            overpayment = number_payments * args.payment - args.principal
+            years, str_years, months, str_months = months_to_years(number_payments)
+            print('It will take', f'{years} {str_years}' if years else '', 'and' if years and months else '',
+                f'{months} {str_months}' if months else '', 'to repay this loan!')
+            print(f'Overpayment = {overpayment}')
 
-    elif args.type == "annuity" and not args.periods:
-        number_payments = number_payments_calc(args.principal, args.payment, args.interest)
-        overpayment = number_payments * args.payment - args.principal
-        years, str_years, months, str_months = months_to_years(number_payments)
-        print('It will take', f'{years} {str_years}' if years else '', 'and' if years and months else '',
-              f'{months} {str_months}' if months else '', 'to repay this loan!')
-        print(f'Overpayment = {overpayment}')
+        elif args.type == "annuity" and not args.payment:
+            payment = payment_calc(args.principal, args.periods, args.interest)
+            overpayment = args.periods * payment - args.principal
+            print(f'Your annuity payment = {payment}!')
+            print(f'Overpayment = {overpayment}')
 
-    elif args.type == "annuity" and not args.payment:
-        payment = payment_calc(args.principal, args.periods, args.interest)
-        overpayment = args.periods * payment - args.principal
-        print(f'Your annuity payment = {payment}!')
-        print(f'Overpayment = {overpayment}')
+        elif args.type == "annuity" and not args.principal:
+            loan_principal = loan_principal_calc(args.payment, args.periods, args.interest)
+            overpayment = args.periods * args.payment - loan_principal
+            print(f'Your loan principal = {loan_principal}!')
+            print(f'Overpayment = {overpayment}')
 
-    elif args.type == "annuity" and not args.principal:
-        loan_principal = loan_principal_calc(args.payment, args.periods, args.interest)
-        overpayment = args.periods * args.payment - loan_principal
-        print(f'Your loan principal = {loan_principal}!')
-        print(f'Overpayment = {overpayment}')
+
+if __name__ == "__main__":
+    main()
